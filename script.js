@@ -1,118 +1,43 @@
 const fs = require('fs');
-const FIRST_LETTER = 'h';
-const WORD_SIZE = 5;
-const CONTAINED_LETTER = [];
-const NOT_CONTAINED_LETTER = ['a','t','s'];
-const CONTAINED_LETTER_AT = [
-    {
-        letter:'',
-        index:2
-    },
-];
+const FIRST_LETTER = 'f';
+const WORD_SIZE = 8;
+const CONTAINED_LETTER = ['e','i','l','b'];
+const NOT_CONTAINED_LETTER = ['a','u','o'];
+const CONTAINED_LETTER_AT = [];
 
 function extract() {
     let data = fs.readFileSync("./dict_fr.txt", "utf-8");
-    let dictionary = data.split(/\r\n/);
-    console.log(`initial words : ${dictionary.length}`);
-    return dictionary
+    return data.split(/\r\n/);
 }
 
 function orderBySize() {
-    const dictionary = extract();
-    let newDictionary = [];
-
-    dictionary.forEach(word => {
-        if (word.length === WORD_SIZE) {
-            newDictionary.push(word)
-        }
-    })
-    console.log(`size checked words : ${newDictionary.length}`);
-    return newDictionary
+    return extract().filter(word => word.length === WORD_SIZE);
 }
 
 function orderByFirstLetter() {
-    const dictionary = orderBySize();
-    let newDictionary = [];
-
-    dictionary.forEach(word => {
-        if (word[0].toUpperCase() === FIRST_LETTER.toUpperCase()) {
-            newDictionary.push(word);
-        }
-    })
-    console.log(`first letter checked words : ${newDictionary.length}`);
-    return newDictionary
+    return orderBySize().filter(word => word[0].toUpperCase() === FIRST_LETTER.toUpperCase());
 }
 
-function withLetter(dictionary) {
-    let newDictionary = []
-    let lettersArePresent = true;
-
-    dictionary.forEach(word => {
-        CONTAINED_LETTER.forEach(letter => {
-            if (!word.includes(letter)) {
-                lettersArePresent = false;
-            }
-        })
-        if (lettersArePresent) {
-            newDictionary.push(word)
-        }
-        lettersArePresent = true;
-    })
-    console.log(`with letter(s) checked words : ${newDictionary.length}`);
-    return newDictionary;
+function withLetter(dictionary, letter) {
+    return dictionary.filter(word => word.includes(letter));
 }
 
-function withoutLetter(dictionary) {
-    let newDictionary = []
-    let lettersAreAbsent = true;
-
-    dictionary.forEach(word => {
-        NOT_CONTAINED_LETTER.forEach(letter => {
-            if (word.includes(letter)) {
-                lettersAreAbsent = false;
-            }
-        })
-        if (lettersAreAbsent) {
-            newDictionary.push(word)
-        }
-        lettersAreAbsent = true;
-    })
-
-    console.log(`without letter(s) checked words : ${newDictionary.length}`);
-    return newDictionary;
+function withoutLetter(dictionary, letter) {
+    return dictionary.filter(word => !word.includes(letter));
 }
 
-function withLetterAtPlace(dictionary) {
-    let newDictionary = []
-    let lettersArePresent = true;
-
-    dictionary.forEach(word => {
-        CONTAINED_LETTER_AT.forEach(element => {
-            if (word.charAt(element.index) !== element.letter) {
-                lettersArePresent = false;
-            }
-        })
-        if (lettersArePresent) {
-            newDictionary.push(word)
-        }
-        lettersArePresent = true;
-    })
-
-    console.log(`with letter at index checked words : ${newDictionary.length}`);
-    return newDictionary;
+function withLetterAtPlace(dictionary, indexedLetter) {
+    return dictionary.filter(word => word.charAt(indexedLetter.index) === indexedLetter.letter);
 }
 
 function resolve() {
     let dictionary = orderByFirstLetter();
-    if (CONTAINED_LETTER.length !== 0) {
-        dictionary = withLetter(dictionary);
-    }
-    if (NOT_CONTAINED_LETTER.length !== 0) {
-        dictionary = withoutLetter(dictionary);
-    }
-    if (CONTAINED_LETTER_AT.length !== 0) {
-        dictionary = withLetterAtPlace(dictionary);
-    }
+
+    dictionary = CONTAINED_LETTER.map(letter => withLetter(dictionary, letter));
+
+    dictionary = NOT_CONTAINED_LETTER.map(letter => withoutLetter(dictionary,letter));
+
+    dictionary = CONTAINED_LETTER_AT.map(indexedLetter => withLetterAtPlace(dictionary, indexedLetter));
 
     return dictionary;
 }
